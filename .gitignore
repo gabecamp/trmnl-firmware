@@ -29,3 +29,6 @@ managed_components/
 # Integration test environment (contains secrets)
 test/integration/test_config.h
 dependencies.lock
+
+# Preloaded Wi-Fi network (contains secrets)
+include/wifi_secrets.h

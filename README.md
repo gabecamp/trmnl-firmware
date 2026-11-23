@@ -172,6 +172,10 @@ If you skip this step, the build may fail with `Error: Missing Arduino framework
 
 ![Image Alt text](/pics/bin_folder.png "Bin")
 
+### **Preloading a Wi-Fi network**
+
+To skip the setup portal, copy `include/wifi_secrets.example.h` to `include/wifi_secrets.h` and fill in your network before building. Git ignores that file. The device saves the network on boot like one joined from the portal, so it keeps working after an update to a release build. Don't share a build made with it: the password is inside the `.bin`.
+
 ## **Uploading guide (PlatformIO)**
 
 1. Put the TRMNL into flashing mode.
