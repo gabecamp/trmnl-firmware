@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <ArduinoLog.h>
+#include <Preferences.h>
 #include <WiFi.h>
 #include <WifiCaptive.h>
 #include <bl.h>
@@ -22,6 +23,24 @@
 #include <modem.h>
 #include <touchbar_actions.h>
 #include <vector>
+#endif
+
+#ifdef PRELOADED_WIFI_SSID
+// Saves the preloaded network like one joined from the portal, so it goes through the usual connect,
+// retry and error screens, and stays saved if the device updates to a release build. It is saved once
+// per build value: a password changed or a network forgotten afterwards is left alone. The marker
+// lives in its own namespace, which the Wi-Fi and device resets don't clear.
+static void wifiSessionSeedPreloadedNetwork(void) {
+  const String seed = String(PRELOADED_WIFI_SSID) + "\n" + PRELOADED_WIFI_PASSWORD;
+  Preferences marker;
+  if (!marker.begin("wifi_preload", false)) return;
+  if (marker.getString("seeded", "") != seed) {
+    Log_info("Saving preloaded Wi-Fi network %s", PRELOADED_WIFI_SSID);
+    WifiCaptivePortal.saveWifiCredentials(WifiCredentials(PRELOADED_WIFI_SSID, PRELOADED_WIFI_PASSWORD));
+    marker.putString("seeded", seed);
+  }
+  marker.end();
+}
 #endif
 
 void wifiSessionInit(void) { WifiCaptivePortal.setHostname(getWifiClientHostname()); }
@@ -102,9 +121,7 @@ void wifiSessionConnect(bool should_show_error_now) {
   WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
 
 #ifdef PRELOADED_WIFI_SSID
-  // Save the preloaded network like one joined from the portal, so it goes through the usual
-  // connect, retry and error screens, and stays saved if the device updates to a release build
-  WifiCaptivePortal.saveWifiCredentials(WifiCredentials(PRELOADED_WIFI_SSID, PRELOADED_WIFI_PASSWORD));
+  wifiSessionSeedPreloadedNetwork();
 #endif
 
 // uncomment this to hardcode WiFi credentials (useful for testing wifi errors, etc.)
